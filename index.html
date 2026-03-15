@@ -128,6 +128,24 @@ header{background:rgba(8,11,18,.94);backdrop-filter:blur(14px);border-bottom:1px
 .tag-over{background:rgba(168,85,247,.15);color:var(--purple);border:1px solid rgba(168,85,247,.3);}
 .tag-corner{background:rgba(234,179,8,.15);color:var(--gold);border:1px solid rgba(234,179,8,.3);}
 .tips-disclaimer{font-size:10px;color:var(--text3);margin-top:8px;padding:0 2px;}
+.tip-card.conf-hit{border-color:rgba(34,197,94,.4)!important;background:rgba(34,197,94,.06)!important;}
+.tip-card.conf-miss{border-color:rgba(239,68,68,.3)!important;background:rgba(239,68,68,.05)!important;}
+.tip-result{font-size:11px;font-weight:700;margin:4px 0 2px;}
+.res-hit{color:var(--green);}
+.res-miss{color:var(--red);}
+.tip-live-score{font-size:11px;color:var(--text2);background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);border-radius:5px;padding:3px 7px;margin:5px 0 3px;display:flex;align-items:center;gap:5px;}
+.tip-live-score strong{color:var(--text);font-size:13px;}
+.live-dot-tip{width:6px;height:6px;border-radius:50%;background:var(--red);animation:pulse-red 1.2s ease-in-out infinite;flex-shrink:0;}
+.tips-archive{padding:0 20px 14px;max-width:1280px;margin:0 auto;}
+.archive-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:8px;}
+.archive-day{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:6px;overflow:hidden;}
+.archive-day-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;list-style:none;user-select:none;}
+.archive-day-header::-webkit-details-marker{display:none;}
+.archive-day-header:hover{background:var(--surface2);}
+.archive-day-date{font-size:13px;font-weight:700;color:var(--text);}
+.archive-day-stat{font-size:12px;color:var(--text2);}
+.archive-day[open] .archive-day-header{border-bottom:1px solid var(--border);}
+.archive-day .tips-strip{padding:10px 14px 6px!important;}
 .intel-panel{background:linear-gradient(135deg,rgba(168,85,247,.08),rgba(59,130,246,.06));border:1px solid rgba(168,85,247,.2);border-radius:var(--radius);padding:16px 18px;margin-bottom:14px;}
 .intel-badge{display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--purple);background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.3);padding:2px 8px;border-radius:4px;margin-bottom:8px;}
 .intel-title{font-size:15px;font-weight:800;margin-bottom:10px;}
@@ -409,42 +427,143 @@ header{background:rgba(8,11,18,.94);backdrop-filter:blur(14px);border-bottom:1px
 </div>
 
 <script>
-/* ═══════════════════════════════════════════
-   🎯 TIPS DEL DÍA — editá este array para
-   actualizar los pronósticos manualmente
-   ═══════════════════════════════════════════ */
-const DAILY_TIPS=[
-  {match:'Inter Milan',opponent:'vs. partido de Serie A',market:'1X2',pick:'Inter Gana',tag:'1x2',conf:'high',stars:'★★★',note:'Sólidos en casa, racha positiva'},
-  {match:'Hamburgo vs Köln',opponent:'',market:'BTTS',pick:'Ambos Marcan',tag:'btts',conf:'high',stars:'★★★',note:'Dos ataques con gol garantizado'},
-  {match:'Hoffenheim',opponent:'vs. partido Bundesliga',market:'1X2',pick:'Hoffenheim Gana',tag:'1x2',conf:'med',stars:'★★',note:'Buen rendimiento reciente de local'},
-  {match:'Borussia Dortmund',opponent:'vs. partido Bundesliga',market:'Over 2.5',pick:'Más de 2.5 Goles',tag:'over',conf:'high',stars:'★★★',note:'BVB genera y concede — partido abierto'},
-  {match:'Bayern Munich',opponent:'vs. partido Bundesliga',market:'Córners',pick:'+3.5 Córners',tag:'corner',conf:'high',stars:'★★★',note:'Bayern domina posesión y territorio'},
-  {match:'Bayern Munich',opponent:'vs. partido Bundesliga',market:'1X2',pick:'Bayern Gana',tag:'1x2',conf:'high',stars:'★★★',note:'Local dominante, mejor equipo de la liga'},
-  {match:'Dortmund vs rival',opponent:'',market:'BTTS',pick:'Ambos Marcan',tag:'btts',conf:'med',stars:'★★',note:'BVB defensivamente expuesto'},
+/* ═══════════════════════════════════════════════
+   🎯 TIPS — editá este array para actualizar
+   result: null=pendiente | true=acertado | false=fallado
+   ═══════════════════════════════════════════════ */
+const TIPS_DB=[
+  // ── 15 Mar 2026 (hoy) ──
+  {date:'2026-03-15',match:'Inter Milan',market:'1X2',pick:'Inter Gana',tag:'1x2',conf:'high',stars:'★★★',note:'Sólidos en casa, racha positiva',result:null},
+  {date:'2026-03-15',match:'Hamburgo vs Köln',market:'BTTS',pick:'Ambos Marcan',tag:'btts',conf:'high',stars:'★★★',note:'Dos ataques con gol garantizado',result:null},
+  {date:'2026-03-15',match:'Hoffenheim',market:'1X2',pick:'Hoffenheim Gana',tag:'1x2',conf:'med',stars:'★★',note:'Buen rendimiento reciente de local',result:null},
+  {date:'2026-03-15',match:'Borussia Dortmund',market:'Over 2.5',pick:'Más de 2.5 Goles',tag:'over',conf:'high',stars:'★★★',note:'BVB genera y concede — partido abierto',result:null},
+  {date:'2026-03-15',match:'Bayern Munich',market:'Córners',pick:'+3.5 Córners',tag:'corner',conf:'high',stars:'★★★',note:'Bayern domina posesión y territorio',result:null},
+  {date:'2026-03-15',match:'Bayern Munich',market:'1X2',pick:'Bayern Gana',tag:'1x2',conf:'high',stars:'★★★',note:'Local dominante, mejor equipo de la liga',result:null},
+  {date:'2026-03-15',match:'Borussia Dortmund',market:'BTTS',pick:'Ambos Marcan',tag:'btts',conf:'med',stars:'★★',note:'BVB defensivamente expuesto',result:null},
 ];
-const TIPS_DATE='Sáb 15 Mar 2026';
+
+/* ── Auto-check tips against real API results ── */
+function normN(s){return(s||'').toLowerCase().replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();}
+function tipMatchesGame(tip,match){
+  const hn=normN(match.homeTeam.name)+' '+normN(match.homeTeam.shortName||'');
+  const an=normN(match.awayTeam.name)+' '+normN(match.awayTeam.shortName||'');
+  const words=normN(tip.match).split(' ').filter(w=>w.length>3);
+  return words.some(w=>hn.includes(w)||an.includes(w));
+}
+function evaluateTip(tip,match){
+  const hg=match.score?.fullTime?.home??0;
+  const ag=match.score?.fullTime?.away??0;
+  const m=tip.market.toUpperCase();
+  const p=normN(tip.pick);
+  if(m==='1X2'){
+    if(hg>ag){const hn=normN(match.homeTeam.name+' '+(match.homeTeam.shortName||''));return normN(tip.pick).split(' ').some(w=>w.length>3&&hn.includes(w));}
+    if(ag>hg){const an=normN(match.awayTeam.name+' '+(match.awayTeam.shortName||''));return normN(tip.pick).split(' ').some(w=>w.length>3&&an.includes(w));}
+    return p.includes('empate');
+  }
+  if(m==='BTTS')return hg>0&&ag>0;
+  if(m.includes('OVER')||m.includes('2.5'))return(hg+ag)>2.5;
+  if(m.includes('3.5'))return(hg+ag)>3.5;
+  return null; // córners y otros no verificables con la API gratis
+}
+function autoCheckTips(){
+  const saved=JSON.parse(localStorage.getItem('sb_tip_results')||'{}');
+  let changed=false;
+  const finished=allMatches.filter(m=>m.status==='FINISHED');
+  TIPS_DB.forEach((tip,idx)=>{
+    if(tip.result!==null)return;
+    const key=`${tip.date}_${idx}`;
+    if(saved[key]!==undefined)return;
+    for(const match of finished){
+      if(tipMatchesGame(tip,match)){
+        const res=evaluateTip(tip,match);
+        if(res!==null){saved[key]=res;changed=true;}
+        break;
+      }
+    }
+  });
+  if(changed){localStorage.setItem('sb_tip_results',JSON.stringify(saved));}
+}
+function getTipResult(tip,idx){
+  if(tip.result!==null)return tip.result;
+  const saved=JSON.parse(localStorage.getItem('sb_tip_results')||'{}');
+  const v=saved[`${tip.date}_${idx}`];
+  return v!==undefined?v:null;
+}
+function getLiveMatch(tip){
+  return allMatches.find(m=>(m.status==='IN_PLAY'||m.status==='PAUSED'||m.status==='FINISHED')&&tipMatchesGame(tip,m));
+}
 
 function renderTips(){
   const sec=document.getElementById('tips-section');
   if(!sec)return;
-  const cards=DAILY_TIPS.map(t=>`
-    <div class="tip-card conf-${t.conf}">
+  const today=new Date().toISOString().slice(0,10);
+  const byDate={};
+  // Merge TIPS_DB with globalIdx for result lookup
+  let globalIdx=0;
+  const tipsWithIdx=TIPS_DB.map(t=>({...t,_idx:globalIdx++}));
+  tipsWithIdx.forEach(t=>{if(!byDate[t.date])byDate[t.date]=[];byDate[t.date].push(t);});
+  const dates=Object.keys(byDate).sort((a,b)=>b.localeCompare(a));
+  const todayTips=byDate[today]||byDate[dates[0]]||[];
+  const fmtDate=d=>{const[y,m,day]=d.split('-');const ms=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];return`${parseInt(day)} ${ms[parseInt(m)-1]} ${y}`;};
+  const tipCard=(t,showResult=false)=>{
+    const res=getTipResult(t,t._idx);
+    const liveMatch=getLiveMatch(t);
+    const isLive=liveMatch&&liveMatch.status==='IN_PLAY';
+    const isFinished=liveMatch&&liveMatch.status==='FINISHED';
+    // Live score badge
+    let liveBadge='';
+    if(liveMatch&&(isLive||isFinished)){
+      const hg=liveMatch.score?.fullTime?.home??liveMatch.score?.halfTime?.home??0;
+      const ag=liveMatch.score?.fullTime?.away??liveMatch.score?.halfTime?.away??0;
+      const hn=liveMatch.homeTeam.shortName||liveMatch.homeTeam.name;
+      const an=liveMatch.awayTeam.shortName||liveMatch.awayTeam.name;
+      const sc=isLive?`<span class="live-dot-tip"></span>`:'';
+      liveBadge=`<div class="tip-live-score">${sc}${hn} <strong>${hg}-${ag}</strong> ${an}</div>`;
+    }
+    const resHtml=(showResult||isFinished)&&res!==null
+      ?`<div class="tip-result ${res?'res-hit':'res-miss'}">${res?'✅ Acertado':'❌ Fallado'}</div>`
+      :res===null&&(showResult||isFinished)?`<div class="tip-result" style="color:var(--text3)">🕐 Sin verificar</div>`:'';
+    const confClass=res===null?t.conf:res?'hit':'miss';
+    return`<div class="tip-card conf-${confClass}">
       <div class="tip-match">${t.match}</div>
       <div class="tip-market">${t.market}</div>
       <div class="tip-pick">${t.pick}</div>
+      ${liveBadge}
+      ${resHtml}
       <div class="tip-footer">
         <span class="tip-stars" style="color:${t.conf==='high'?'var(--green)':t.conf==='med'?'var(--gold)':'var(--text3)'}">${t.stars}</span>
         <span class="tip-tag tag-${t.tag}">${t.market}</span>
       </div>
-    </div>`).join('');
-  sec.innerHTML=`<div class="tips-section">
+    </div>`;
+  };
+  const todayHtml=`<div class="tips-section">
     <div class="tips-header">
       <div class="tips-title">🎯 Tips del Día</div>
-      <div class="tips-date">${TIPS_DATE}</div>
+      <div class="tips-date">${fmtDate(dates[0])}</div>
     </div>
-    <div class="tips-strip">${cards}</div>
+    <div class="tips-strip">${todayTips.map(t=>tipCard(t,false)).join('')}</div>
     <div class="tips-disclaimer">⚠️ Solo con fines informativos. Apostar implica riesgos — jugá con responsabilidad.</div>
   </div>`;
+  const archiveDates=dates.slice(1);
+  const archiveHtml=archiveDates.length?`<div class="tips-archive">
+    <div class="archive-title">📁 Archivo de tips anteriores</div>
+    ${archiveDates.map(d=>{
+      const tips=byDate[d];
+      const resolved=tips.map(t=>getTipResult(t,t._idx));
+      const hits=resolved.filter(r=>r===true).length;
+      const total=resolved.filter(r=>r!==null).length;
+      const pct=total?Math.round(hits/total*100):0;
+      const pctColor=pct>=70?'var(--green)':pct>=50?'var(--gold)':'var(--red)';
+      return`<details class="archive-day">
+        <summary class="archive-day-header">
+          <span class="archive-day-date">${fmtDate(d)}</span>
+          <span class="archive-day-stat" style="color:${pctColor}">${hits}/${total} acertados &nbsp;·&nbsp; <strong>${pct}%</strong></span>
+        </summary>
+        <div class="tips-strip" style="padding:10px 0 4px">${tips.map(t=>tipCard(t,true)).join('')}</div>
+      </details>`;
+    }).join('')}
+  </div>`:'';
+  sec.innerHTML=todayHtml+archiveHtml;
 }
 
 let API_KEY=localStorage.getItem('sb_key')||'';
@@ -689,6 +808,8 @@ async function loadAll(){
       standings[currentLeague]=table;renderStandings(table);
     }
     renderMatches();
+    autoCheckTips();
+    renderTips();
     const live=allMatches.filter(m=>m.status==='IN_PLAY'||m.status==='PAUSED').length;
     if(live>0)refreshTimer=setTimeout(loadAll,60000);
   }catch(err){showError(err.message);}
