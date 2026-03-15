@@ -405,10 +405,10 @@ header{background:rgba(8,11,18,.94);backdrop-filter:blur(14px);border-bottom:1px
     <div class="content-header">
       <div class="content-title" id="content-title">Premier League</div>
       <div class="filter-chips">
-        <button class="chip active" data-f="all"       onclick="setFilter(this)">Todos</button>
+        <button class="chip"        data-f="all"       onclick="setFilter(this)">Todos</button>
         <button class="chip"        data-f="FINISHED"  onclick="setFilter(this)">Finalizados</button>
         <button class="chip"        data-f="IN_PLAY"   onclick="setFilter(this)">En vivo</button>
-        <button class="chip"        data-f="SCHEDULED" onclick="setFilter(this)">Próximos</button>
+        <button class="chip active" data-f="SCHEDULED" onclick="setFilter(this)">Próximos</button>
       </div>
     </div>
     <div class="matches-container" id="matches-container">
@@ -468,7 +468,9 @@ function evaluateTip(tip,match){
 function autoCheckTips(){
   const saved=JSON.parse(localStorage.getItem('sb_tip_results')||'{}');
   let changed=false;
-  const finished=allMatches.filter(m=>m.status==='FINISHED');
+  // Search across ALL cached leagues, not just current
+  const allCached=Object.values(globalMatchCache).flat();
+  const finished=allCached.filter(m=>m.status==='FINISHED');
   TIPS_DB.forEach((tip,idx)=>{
     if(tip.result!==null)return;
     const key=`${tip.date}_${idx}`;
@@ -490,7 +492,8 @@ function getTipResult(tip,idx){
   return v!==undefined?v:null;
 }
 function getLiveMatch(tip){
-  return allMatches.find(m=>(m.status==='IN_PLAY'||m.status==='PAUSED'||m.status==='FINISHED')&&tipMatchesGame(tip,m));
+  const allCached=Object.values(globalMatchCache).flat();
+  return allCached.find(m=>(m.status==='IN_PLAY'||m.status==='PAUSED'||m.status==='FINISHED')&&tipMatchesGame(tip,m));
 }
 
 function renderTips(){
@@ -567,7 +570,8 @@ function renderTips(){
 }
 
 let API_KEY=localStorage.getItem('sb_key')||'';
-let currentLeague='PL',currentFilter='all',allMatches=[],standings={},teamForms={},expandedId=null,refreshTimer=null;
+let currentLeague='PL',currentFilter='SCHEDULED',allMatches=[],standings={},teamForms={},expandedId=null,refreshTimer=null;
+const globalMatchCache={}; // stores matches per league for cross-league tip checking
 const LEAGUE_NAMES={PL:'Premier League',PD:'La Liga',BL1:'Bundesliga',SA:'Serie A',FL1:'Ligue 1',CL:'Champions League',EL:'Europa League'};
 
 window.addEventListener('DOMContentLoaded',()=>{
@@ -803,6 +807,7 @@ async function loadAll(){
     ]);
     if(mData.status==='rejected')throw new Error(mData.reason.message);
     allMatches=mData.value?.matches||[];
+    globalMatchCache[currentLeague]=allMatches; // cache for cross-league tip checking
     if(sData.status==='fulfilled'){
       const table=sData.value?.standings?.[0]?.table||[];
       standings[currentLeague]=table;renderStandings(table);
