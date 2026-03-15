@@ -1,0 +1,8 @@
+{
+  "name": "statball",
+  "version": "1.0.0",
+  "description": "Statball - Análisis de Fútbol con IA",
+  "engines": {
+    "node": ">=18"
+  }
+}
